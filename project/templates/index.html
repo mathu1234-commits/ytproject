@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Summarizer & Thumbnail</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('https://wallpaperaccess.com/full/2945044.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #333;
+            line-height: 1.6;
+            padding: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2em;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+        }
+
+        #summarize-form {
+            max-width: 100%;
+            width: 600px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        label {
+            font-size: 1.2em;
+            color: #555;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        button {
+            width: 100%;
+            background-color: #007bff;
+            color: white;
+            padding: 12px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 1.6em;
+            margin-top: 30px;
+            color: white;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+        }
+
+        #summary-text {
+            max-width: 100%;
+            width: 600px;
+            margin: 20px auto;
+            background-color: rgba(249, 249, 249, 0.9);
+            padding: 20px;
+            border-left: 4px solid #007bff;
+            border-radius: 8px;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        #thumbnail {
+            display: block;
+            margin: 30px auto;
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        #loader {
+            display: none;
+            margin: 20px auto;
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid #007bff;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading #loader {
+            display: block;
+        }
+
+        .loading button {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            #summarize-form, #summary-text {
+                padding: 15px;
+            }
+
+            h2 {
+                font-size: 1.4em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            #summarize-form, #summary-text {
+                padding: 10px;
+            }
+
+            button {
+                font-size: 1em;
+                padding: 10px;
+            }
+
+            h2 {
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>YouTube Video Summarizer & Thumbnail</h1>
+    
+    <form id="summarize-form">
+        <label for="video-url">YouTube Video URL:</label>
+        <input type="text" id="video-url" name="video-url" placeholder="Enter YouTube Video URL" required>
+        <button type="submit">Show Thumbnail & Summarize</button>
+    </form>
+
+    <!-- Loader -->
+    <div id="loader"></div>
+
+    <!-- YouTube Thumbnail -->
+    <img id="thumbnail" src="" alt="YouTube Thumbnail" style="display: none;"/>
+
+    <h2>Summary:</h2>
+    <p id="summary-text"></p>
+
+    <script>
+        const form = document.getElementById('summarize-form');
+        const loader = document.getElementById('loader');
+        const summaryText = document.getElementById('summary-text');
+        const thumbnail = document.getElementById('thumbnail');
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            
+            document.body.classList.add('loading'); // Show loader
+
+            const videoUrl = document.getElementById('video-url').value;
+
+            // Function to extract YouTube Video ID from various URL formats
+            function extractVideoId(url) {
+                let videoId = null;
+                if (url.includes('youtu.be/')) {
+                    videoId = url.split('youtu.be/')[1].split('?')[0];
+                } else if (url.includes('v=')) {
+                    videoId = url.split('v=')[1].split('&')[0];
+                } else if (url.includes('/embed/')) {
+                    videoId = url.split('/embed/')[1].split('?')[0];
+                }
+                return videoId;
+            }
+
+            // Extract the video ID
+            const videoId = extractVideoId(videoUrl);
+
+            if (!videoId) {
+                summaryText.innerText = 'Invalid YouTube URL. Please enter a valid YouTube video link.';
+                document.body.classList.remove('loading');
+                return;
+            }
+
+            // Set YouTube thumbnail
+            const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+            thumbnail.src = thumbnailUrl;
+            thumbnail.style.display = 'block';
+
+            try {
+                const response = await fetch('/summarize', {  // Replace '/summarize' with your API endpoint
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: videoUrl })
+                });
+
+                const data = await response.json();
+                
+                if (data.summary) {
+                    summaryText.innerText = data.summary;
+                } else {
+                    summaryText.innerText = 'Error: ' + data.error;
+                }
+            } catch (error) {
+                summaryText.innerText = 'Error: Unable to process request.';
+            } finally {
+                document.body.classList.remove('loading'); // Hide loader
+            }
+        });
+    </script>
+</body>
+</html>
